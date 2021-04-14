@@ -4,6 +4,10 @@ author: https://github.com/therealbnut
 requirements: ['git']
 configuration:
   properties:
-    base_checkout_path:
+    checkout_path:
+      type: string
+    branch:
+      type: string
+    subpath:
       type: string
   additionalProperties: false

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+main() {
+  local base_path clone_flags clean_flags fetch_flags base_repo base_branch
+  local build_checkout_path base_subpath
+
+  # Based on https://git.io/JO39F (buildkite/agent:bootstrap/git.go)
+
+  if [[ -n "${BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH:-}" ]]; then
+    base_path="/var/lib/buildkite-agent/builds/${BUILDKITE_AGENT_NAME}/${BUILDKITE_PIPELINE_NAME}"
+    export BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH="${base_path}"
+  else
+    base_path="${BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH}"
+  fi
+  if [[ -n "${BUILDKITE_PLUGIN_CLONE_BASE_BRANCH:-}" ]]; then
+    base_branch="${BUILDKITE_PULL_REQUEST_BASE_BRANCH:-main}"
+    export BUILDKITE_PLUGIN_CLONE_BASE_BRANCH="${base_branch}"
+  else
+    base_branch="${BUILDKITE_PLUGIN_CLONE_BASE_BRANCH}"
+  fi
+
+  clone_flags="${BUILDKITE_GIT_CLONE_FLAGS:--v}"
+  clean_flags="${BUILDKITE_GIT_CLEAN_FLAGS:--ffxdq}"
+  fetch_flags="${BUILDKITE_GIT_FETCH_FLAGS:--v --prune}"
+  base_repo="${BUILDKITE_REPO}"
+  build_checkout_path="${BUILDKITE_BUILD_CHECKOUT_PATH}"
+  base_subpath="${BUILDKITE_PLUGIN_CLONE_BASE_SUBPATH:-.}"
+
+  echo "--- Cloning base branch into"
+
+  if [[ -n "${BUILDKITE_CLEAN_CHECKOUT:-}" ]]; then
+    echo "Cleaning checkout"
+    if [ -d "${base_path}" ]; then
+      # Avoiding 'rm -rf' in case 'base_path' is something unfortunate.
+      rm -r "${base_path}"
+    fi
+  fi
+
+  mkdir -p "${base_path}"
+  cd "${base_path}"
+
+  if ! git rev-parse --is-inside-git-dir; then
+    echo "Doing a clean clone"
+    git clone "${clone_flags}" \
+      --no-checkout --shared --reference "${build_checkout_path}" \
+      -- "${base_repo}" "${base_path}"
+  fi
+
+  echo "Cleaning any residual files"
+  git reset --hard
+  git clean "${clean_flags}"
+
+  echo "Fetching base branch (${base_branch})"
+  git fetch "${fetch_flags}" "origin" "${base_branch}"
+
+  echo "Checking out '${base_branch}' -- '${base_subpath}'"
+  git checkout -f "${base_branch}" -- "${base_subpath}"
+
+  echo "Cleaning again to remove any post-checkout changes"
+  git clean "${clean_flags}"
+
+  echo "Checked out at 'BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH'"
+}
+
+main "$@"
