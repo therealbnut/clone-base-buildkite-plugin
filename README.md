@@ -32,3 +32,17 @@ The plugin accepts the following environment variables to configure its behaviou
 
      - *Required* No
      - *Description* Specify if you only want to checkout a subpath.
+
+## Testing
+
+Running these will require you to have docker installed.
+
+Running the tests:
+```sh
+docker-compose run --rm tests
+```
+
+Linting the plugin.yaml:
+```sh
+docker-compose run --rm lint
+```
