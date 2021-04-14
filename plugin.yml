@@ -1,0 +1,9 @@
+name: Clone Base Branch
+description: Clone the PR base branch in addition to the target branch
+author: https://github.com/therealbnut
+requirements: ['git']
+configuration:
+  properties:
+    base_checkout_path:
+      type: string
+  additionalProperties: false
