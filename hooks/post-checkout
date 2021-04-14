@@ -10,16 +10,16 @@ main() {
   # Based on https://git.io/JO39F (buildkite/agent:bootstrap/git.go)
 
   if [[ -n "${BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH:-}" ]]; then
+    base_path="${BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH}"
+  else
     base_path="/var/lib/buildkite-agent/builds/${BUILDKITE_AGENT_NAME}/${BUILDKITE_PIPELINE_NAME}"
     export BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH="${base_path}"
-  else
-    base_path="${BUILDKITE_PLUGIN_CLONE_BASE_CHECKOUT_PATH}"
   fi
   if [[ -n "${BUILDKITE_PLUGIN_CLONE_BASE_BRANCH:-}" ]]; then
+    base_branch="${BUILDKITE_PLUGIN_CLONE_BASE_BRANCH}"
+  else
     base_branch="${BUILDKITE_PULL_REQUEST_BASE_BRANCH:-main}"
     export BUILDKITE_PLUGIN_CLONE_BASE_BRANCH="${base_branch}"
-  else
-    base_branch="${BUILDKITE_PLUGIN_CLONE_BASE_BRANCH}"
   fi
 
   clone_flags="${BUILDKITE_GIT_CLONE_FLAGS:--v}"
